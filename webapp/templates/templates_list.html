@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ tr('nav.templates') }}</h1>
+    <div class="page-subtitle">
+      {% if lang == 'fa' %}قالب‌ها به‌صورت خودکار از روی یک پاسخ‌برگ خالی ساخته می‌شوند.{% else %}Templates are auto-built from a clean/blank sample sheet.{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="section-title">{% if lang == 'fa' %}قالب جدید از روی پاسخ‌برگ خالی{% else %}New template from a clean sheet{% endif %}</h2>
+  <form class="card" method="post" action="{{ url_for('templates_calibrate') }}" enctype="multipart/form-data" data-loading-text="{% if lang == 'fa' %}در حال کالیبراسیون…{% else %}Calibrating…{% endif %}">
+    <div class="field">
+      <label>{% if lang == 'fa' %}نام قالب{% else %}Template name{% endif %}</label>
+      <input type="text" name="name" placeholder="{% if lang == 'fa' %}مثلاً: آزمون ۱۰۰ سوالی{% else %}e.g. 100-question sheet{% endif %}">
+    </div>
+    <div class="field">
+      <label>{% if lang == 'fa' %}تصویر پاسخ‌برگ خالی{% else %}Clean sample sheet image{% endif %}</label>
+      <input type="file" name="sheet_image" accept="image/*,application/pdf" required>
+      <div class="hint">
+        {% if lang == 'fa' %}
+        باید همان طرحی باشد که دانش‌آموزان پر می‌کنند، ولی کاملاً خالی (بدون علامت).
+        {% else %}
+        Should be the exact layout students will fill in, but completely blank.
+        {% endif %}
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">
+      {% if lang == 'fa' %}ساخت قالب{% else %}Build template{% endif %}
+    </button>
+  </form>
+</div>
+
+<div class="section">
+  <h2 class="section-title">{% if lang == 'fa' %}قالب‌های موجود{% else %}Existing templates{% endif %}</h2>
+  {% if templates %}
+  <div class="grid grid-3">
+    {% for t in templates %}
+    <div class="card template-card">
+      <div class="name">{{ t.name }}</div>
+      <div class="meta">
+        {{ t.question_count }} {% if lang == 'fa' %}سوال{% else %}questions{% endif %}
+        · {{ t.blocks|length }} {% if lang == 'fa' %}بلوک{% else %}blocks{% endif %}
+        · {{ t.canvas_size[0] }}×{{ t.canvas_size[1] }}
+      </div>
+      {% if t.student_id.present %}
+        <div class="meta">
+          {% if lang == 'fa' %}شناسه دانش‌آموز: {{ t.student_id.n_digits }} رقم{% else %}Student ID: {{ t.student_id.n_digits }} digits{% endif %}
+          {% if t.student_id.needs_confirmation %}
+          <span class="warn-chip">· {% if lang == 'fa' %}نیازمند تأیید{% else %}needs confirmation{% endif %}</span>
+          {% endif %}
+        </div>
+        <a href="{{ url_for('template_student_id_editor', filename=t._path.name) }}" class="btn btn-secondary" style="align-self:flex-start; margin-top:2px">
+          {{ icon('edit', 15) }}{% if lang == 'fa' %}ویرایش ناحیه شناسه{% else %}Edit ID region{% endif %}
+        </a>
+      {% endif %}
+      <div class="meta">
+        {{ t.text_fields|length }} {% if lang == 'fa' %}فیلد متنی{% else %}text fields{% endif %}
+        {% if t.text_fields %}({{ t.text_fields|map(attribute='name')|join('، ' if lang=='fa' else ', ') }}){% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty-state">
+    <div class="empty-icon">{{ icon('layers', 26) }}</div>
+    <h3>{{ tr('empty.templates.title') }}</h3>
+    <p>{{ tr('empty.templates.body') }}</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

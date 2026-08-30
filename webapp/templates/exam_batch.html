@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if lang == 'fa' %}پردازش دسته‌ای — {{ exam.name }}{% else %}Batch Process — {{ exam.name }}{% endif %}</h1>
+    <div class="page-subtitle">
+      {% if lang == 'fa' %}چند تصویر پاسخ‌برگ را همزمان انتخاب کن؛ همه به‌ترتیب پردازش و ذخیره می‌شوند.{% else %}Pick multiple sheet images at once; each is processed and saved.{% endif %}
+    </div>
+  </div>
+</div>
+
+<form class="card" method="post" enctype="multipart/form-data" data-loading-text="{% if lang == 'fa' %}در حال پردازش…{% else %}Processing…{% endif %}">
+  <div class="field">
+    <label>{% if lang == 'fa' %}تصاویر پاسخ‌برگ‌ها{% else %}Sheet images{% endif %}</label>
+    <input type="file" name="sheet_images" accept="image/*,application/pdf" multiple required>
+    <div class="hint">
+      {% if lang == 'fa' %}می‌توانی چند فایل را با هم انتخاب کنی (Ctrl/Cmd + کلیک).{% else %}Select multiple files with Ctrl/Cmd+click.{% endif %}
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary btn-block">
+    {% if lang == 'fa' %}شروع پردازش{% else %}Start processing{% endif %}
+  </button>
+</form>
+
+<div class="section" style="margin-top:20px">
+  <div class="card">
+    <h3>{% if lang == 'fa' %}قبل از پردازش{% else %}Before you process{% endif %}</h3>
+    <p class="page-subtitle" style="margin:0">
+      {% if lang == 'fa' %}
+      اگر کلید پاسخ را قبلاً ثبت نکرده‌ای، پاسخ‌برگ‌ها همچنان پردازش و ذخیره می‌شوند ولی نمره‌ای محاسبه نخواهد شد — هر وقت کلید را ثبت کردی، از صفحه‌ی هر پاسخ‌برگ می‌توانی دوباره ببینی.
+      {% else %}
+      If you haven't set the answer key yet, sheets will still be processed and saved, just without a score — you can revisit them once the key is set.
+      {% endif %}
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if lang == 'fa' %}آمار — {{ exam.name }}{% else %}Analytics — {{ exam.name }}{% endif %}</h1>
+  </div>
+</div>
+
+{% if stats.n_scored == 0 %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('bar-chart', 26) }}</div>
+  <h3>{% if lang == 'fa' %}هنوز داده‌ای برای تحلیل نیست{% else %}Nothing to analyze yet{% endif %}</h3>
+  <p>{% if lang == 'fa' %}پاسخ‌برگ پردازش کن و مطمئن شو کلید پاسخ ثبت شده.{% else %}Process some sheets and make sure the answer key is set.{% endif %}</p>
+</div>
+{% else %}
+
+<div class="section">
+  <div class="card">
+    <div class="stat-row">
+      <div class="metric"><div class="n">{{ stats.n_scored }}</div><div class="l">{% if lang == 'fa' %}تعداد{% else %}Count{% endif %}</div></div>
+      <div class="metric"><div class="n">{{ stats.average }}%</div><div class="l">{% if lang == 'fa' %}میانگین{% else %}Average{% endif %}</div></div>
+      <div class="metric"><div class="n">{{ stats.median }}%</div><div class="l">{% if lang == 'fa' %}میانه{% else %}Median{% endif %}</div></div>
+      <div class="metric"><div class="n">{{ stats.minimum }}%</div><div class="l">{% if lang == 'fa' %}کمینه{% else %}Min{% endif %}</div></div>
+      <div class="metric"><div class="n">{{ stats.maximum }}%</div><div class="l">{% if lang == 'fa' %}بیشینه{% else %}Max{% endif %}</div></div>
+      <div class="metric"><div class="n">{{ stats.std_dev }}</div><div class="l">{% if lang == 'fa' %}انحراف معیار{% else %}Std dev{% endif %}</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="section-title">{% if lang == 'fa' %}توزیع نمرات{% else %}Score distribution{% endif %}</h2>
+  <div class="card">
+    <div class="bar-chart">
+      {% for label, count in stats.distribution %}
+      <div class="bar-col">
+        <span class="page-subtitle" style="margin:0">{{ count }}</span>
+        <div class="bar" style="height: {{ (count / max_bucket * 100) if max_bucket else 0 }}%"></div>
+        <span class="bar-label">{{ label }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="section-title">{% if lang == 'fa' %}دشواری هر سوال{% else %}Per-question difficulty{% endif %}</h2>
+  <div class="card" style="padding:0">
+    <table class="results">
+      <thead><tr>
+        <th>{% if lang == 'fa' %}سوال{% else %}Q{% endif %}</th>
+        <th>{% if lang == 'fa' %}کلید{% else %}Key{% endif %}</th>
+        <th>{% if lang == 'fa' %}درست{% else %}Correct{% endif %}</th>
+        <th>{% if lang == 'fa' %}غلط{% else %}Wrong{% endif %}</th>
+        <th>{% if lang == 'fa' %}خالی{% else %}Blank{% endif %}</th>
+        <th>{% if lang == 'fa' %}چندگانه{% else %}Multiple{% endif %}</th>
+        <th>{% if lang == 'fa' %}نرخ بازبینی{% else %}Review rate{% endif %}</th>
+      </tr></thead>
+      <tbody>
+      {% for qs in q_stats %}
+        <tr>
+          <td>Q{{ '%03d'|format(qs.question_number) }}</td>
+          <td>{{ qs.correct_answer or '—' }}</td>
+          <td>
+            {{ qs.correct_pct }}%
+            <div class="difficulty-bar"><div class="fill" style="width:{{ qs.correct_pct }}%; background:var(--green)"></div></div>
+          </td>
+          <td>{{ qs.wrong_pct }}%</td>
+          <td>{{ qs.blank_pct }}%</td>
+          <td>{{ qs.multiple_pct }}%</td>
+          <td>{{ qs.review_rate_pct }}%</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" dir="{{ 'rtl' if rtl else 'ltr' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ tr('app_title') }}{% block title_suffix %}{% endblock %}</title>
+<script>
+  // Resolve "system" to the OS/browser preference before first paint, so
+  // there's no flash of the wrong theme. Purely local -- reads only
+  // prefers-color-scheme, no network/telemetry involved.
+  (function () {
+    var theme = {{ theme|tojson }};
+    if (theme === "system") {
+      theme = (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) ? "dark" : "light";
+    }
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">EC</div>
+      <div class="brand-name">{{ tr('app_title') }}</div>
+    </div>
+    <nav class="nav">
+      <a href="{{ url_for('dashboard') }}" class="nav-item {{ 'active' if request.endpoint=='dashboard' }}">
+        {{ icon('grid') }}<span>{{ tr('nav.dashboard') }}</span>
+      </a>
+      <a href="{{ url_for('templates_page') }}" class="nav-item {{ 'active' if request.endpoint=='templates_page' }}">
+        {{ icon('layers') }}<span>{{ tr('nav.templates') }}</span>
+      </a>
+      <a href="{{ url_for('exams_list') }}" class="nav-item {{ 'active' if request.endpoint and request.endpoint.startswith('exam') or request.endpoint == 'submission_detail' or request.endpoint == 'submission_review' }}">
+        {{ icon('clipboard') }}<span>{{ tr('nav.exams') }}</span>
+      </a>
+      <a href="{{ url_for('students_list') }}" class="nav-item {{ 'active' if request.endpoint and request.endpoint.startswith('student') }}">
+        {{ icon('users') }}<span>{{ tr('nav.students') }}</span>
+      </a>
+      <a href="{{ url_for('process_form') }}" class="nav-item {{ 'active' if request.endpoint in ['process_form','process_submit','process_result'] }}">
+        {{ icon('upload') }}<span>{{ 'پردازش سریع (بدون آزمون)' if lang=='fa' else 'Quick Process (no exam)' }}</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="dot-legend"><i class="dot dot-green"></i>{{ tr('status.high_confidence') }}</span>
+      <span class="dot-legend"><i class="dot dot-amber"></i>{{ tr('status.low_confidence') }}</span>
+      <span class="dot-legend"><i class="dot dot-red"></i>{{ tr('status.multiple_mark') }}</span>
+      <span class="dot-legend"><i class="dot dot-gray"></i>{{ tr('status.blank') }}</span>
+      <a href="{{ url_for('settings_page') }}" class="nav-item {{ 'active' if request.endpoint=='settings_page' }}" style="margin-top:6px">
+        {{ icon('sliders') }}<span>{{ tr('nav.settings') }}</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <template id="flash-data">
+        {%- for category, message in messages -%}
+          <div data-category="{{ category }}">{{ message }}</div>
+        {%- endfor -%}
+        </template>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

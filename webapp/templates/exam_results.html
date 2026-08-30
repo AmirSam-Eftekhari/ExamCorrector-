@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if lang == 'fa' %}نتایج — {{ exam.name }}{% else %}Results — {{ exam.name }}{% endif %}</h1>
+    <div class="page-subtitle">{{ submissions|length }} {% if lang == 'fa' %}پاسخ‌برگ{% else %}sheets{% endif %}</div>
+  </div>
+  <a href="{{ url_for('exam_batch', exam_id=exam.id) }}" class="btn btn-primary">
+    {% if lang == 'fa' %}+ پردازش پاسخ‌برگ بیشتر{% else %}+ Process more sheets{% endif %}
+  </a>
+</div>
+
+{% if not submissions %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('inbox', 26) }}</div>
+  <h3>{% if lang == 'fa' %}هنوز پاسخ‌برگی پردازش نشده{% else %}No sheets processed yet{% endif %}</h3>
+  <a href="{{ url_for('exam_batch', exam_id=exam.id) }}" class="btn btn-primary">{% if lang == 'fa' %}پردازش دسته‌ای{% else %}Batch process{% endif %}</a>
+</div>
+{% else %}
+<div class="card" style="padding:0">
+  <table class="results">
+    <thead><tr>
+      <th>{% if lang == 'fa' %}فایل{% else %}File{% endif %}</th>
+      <th>{% if lang == 'fa' %}شناسه دانش‌آموز{% else %}Student ID{% endif %}</th>
+      <th>{% if lang == 'fa' %}اسم{% else %}Name{% endif %}</th>
+      <th>{% if lang == 'fa' %}نمره{% else %}Score{% endif %}</th>
+      <th>{% if lang == 'fa' %}کیفیت{% else %}Quality{% endif %}</th>
+      <th>{% if lang == 'fa' %}وضعیت{% else %}Status{% endif %}</th>
+      <th></th>
+    </tr></thead>
+    <tbody>
+    {% for s in submissions %}
+      <tr>
+        <td>{{ s.source_file }}</td>
+        <td>{{ s.student_id_detected or '—' }}</td>
+        <td>{{ s.student_name_detected or '—' }}</td>
+        <td>{{ (s.percentage ~ '%') if s.percentage is not none else '—' }}</td>
+        <td>{{ s.quality_score|round(0)|int if s.quality_score else '—' }}{{ '%' if s.quality_score }}</td>
+        <td><span class="badge {{ 'badge-green' if s.status.value == 'COMPLETED' else ('badge-red' if s.status.value == 'FAILED' else 'badge-amber') }}">{{ s.status.value }}</span></td>
+        <td><a href="{{ url_for('submission_detail', exam_id=exam.id, submission_id=s.id) }}" class="btn btn-secondary">{% if lang == 'fa' %}مشاهده{% else %}View{% endif %}</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

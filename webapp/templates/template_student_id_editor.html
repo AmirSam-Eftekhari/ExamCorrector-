@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if lang == 'fa' %}ویرایش ناحیه‌ی شناسه‌ی دانش‌آموز{% else %}Edit Student ID Region{% endif %}</h1>
+    <div class="page-subtitle">{{ template.name }}</div>
+  </div>
+  <a href="{{ url_for('templates_page') }}" class="btn btn-secondary">{% if lang == 'fa' %}بازگشت{% else %}Back{% endif %}</a>
+</div>
+
+{% if exams_using_it %}
+<div class="card" style="border-color:var(--amber); margin-bottom:20px">
+  <p style="margin:0" class="page-subtitle">
+    {{ icon('alert-triangle', 15) }} {% if lang == 'fa' %}
+    این قالب توسط {{ exams_using_it|length }} آزمون استفاده می‌شود ({{ exams_using_it|map(attribute='name')|join('، ') }}).
+    تغییر این ناحیه فقط روی پردازش‌های بعدی اثر می‌گذارد؛ نتایج قبلاً ذخیره‌شده تغییر نمی‌کنند.
+    {% else %}
+    This template is used by {{ exams_using_it|length }} exam(s) ({{ exams_using_it|map(attribute='name')|join(', ') }}).
+    Changing this region only affects future processing -- already-saved results are not altered retroactively.
+    {% endif %}
+  </p>
+</div>
+{% endif %}
+
+<div class="grid grid-2">
+  <div>
+    <h2 class="section-title">{% if lang == 'fa' %}پیش‌نمایش زنده{% else %}Live preview{% endif %}</h2>
+    <div class="image-panel" style="aspect-ratio: 3/1; padding:24px">
+      <svg id="preview" viewBox="0 0 1000 260" style="width:100%; height:100%; background:#fff; border-radius:6px">
+        <rect x="0" y="0" width="1000" height="260" fill="#ffffff"></rect>
+      </svg>
+    </div>
+    <p class="page-subtitle" style="margin-top:10px">
+      {% if lang == 'fa' %}
+      این پیش‌نمایش از روی مقادیر عددی زیر رسم می‌شود (نه از روی عکس واقعی) — همین که عددها را عوض می‌کنی بلافاصله به‌روزرسانی می‌شود.
+      {% else %}
+      This preview is drawn directly from the numbers below (not a real photo) -- it updates instantly as you edit them.
+      {% endif %}
+    </p>
+  </div>
+
+  <form method="post" id="sidForm">
+    <div class="card">
+      <div class="grid grid-2">
+        <div class="field">
+          <label>{% if lang == 'fa' %}تعداد رقم‌ها{% else %}Number of digits{% endif %}</label>
+          <input type="number" name="n_digits" id="n_digits" min="1" max="20" value="{{ template.student_id.n_digits }}">
+        </div>
+        <div class="field">
+          <label>{% if lang == 'fa' %}تعداد گزینه در هر ردیف{% else %}Bubbles per row{% endif %}</label>
+          <input type="number" name="bubbles_per_row" id="bubbles_per_row" min="1" max="10" value="{{ template.student_id.bubbles_per_row }}">
+        </div>
+        <div class="field">
+          <label>{% if lang == 'fa' %}تعداد زیرردیف (برای ارقام ۰ تا ۹){% else %}Sub-rows (for digits 0-9){% endif %}</label>
+          <input type="number" name="rows_per_column" id="rows_per_column" min="1" max="10" value="{{ template.student_id.rows_per_column }}">
+        </div>
+        <div class="field">
+          <label>{% if lang == 'fa' %}ارقام در هر ستون{% else %}Digits per column{% endif %}</label>
+          <input type="number" name="digits_per_column" id="digits_per_column" min="1" max="10" value="{{ template.student_id.digits_per_column }}">
+        </div>
+      </div>
+
+      <h3 style="margin:16px 0 10px">{% if lang == 'fa' %}موقعیت (٪ از عرض/ارتفاع صفحه){% else %}Position (% of page width/height){% endif %}</h3>
+      <div class="grid grid-2">
+        <div class="field">
+          <label>{% if lang == 'fa' %}شروع ستون اول (X){% else %}First column X{% endif %}</label>
+          <input type="number" step="0.1" name="col_start_x_pct" id="col_start_x_pct" value="{{ (template.student_id.col_start_x*100)|round(2) }}">
+        </div>
+        <div class="field">
+          <label>{% if lang == 'fa' %}فاصله بین ستون‌ها{% else %}Column pitch{% endif %}</label>
+          <input type="number" step="0.1" name="col_pitch_x_pct" id="col_pitch_x_pct" value="{{ (template.student_id.col_pitch_x*100)|round(2) }}">
+        </div>
+        <div class="field">
+          <label>{% if lang == 'fa' %}شروع ردیف اول (Y){% else %}First row Y{% endif %}</label>
+          <input type="number" step="0.1" name="row_start_y_pct" id="row_start_y_pct" value="{{ (template.student_id.row_start_y*100)|round(2) }}">
+        </div>
+        <div class="field">
+          <label>{% if lang == 'fa' %}فاصله بین زیرردیف‌ها{% else %}Row pitch{% endif %}</label>
+          <input type="number" step="0.1" name="row_pitch_y_pct" id="row_pitch_y_pct" value="{{ (template.student_id.row_pitch_y*100)|round(2) }}">
+        </div>
+        <div class="field">
+          <label>{% if lang == 'fa' %}شعاع حباب{% else %}Bubble radius{% endif %}</label>
+          <input type="number" step="0.01" name="bubble_radius_pct" id="bubble_radius_pct" value="{{ (template.student_id.bubble_radius*100)|round(3) }}">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top:14px">
+        {% if lang == 'fa' %}ذخیره{% else %}Save{% endif %}
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+(function () {
+  const ids = ["n_digits", "bubbles_per_row", "rows_per_column", "digits_per_column",
+               "col_start_x_pct", "col_pitch_x_pct", "row_start_y_pct", "row_pitch_y_pct", "bubble_radius_pct"];
+  const svg = document.getElementById("preview");
+  const NS = "http://www.w3.org/2000/svg";
+
+  function redraw() {
+    const v = {};
+    ids.forEach(id => v[id] = parseFloat(document.getElementById(id).value) || 0);
+    while (svg.lastChild && svg.lastChild.tagName !== 'rect') svg.removeChild(svg.lastChild);
+
+    const W = 1000, H = 260;
+    const colStartX = v.col_start_x_pct / 100 * W;
+    const colPitchX = v.col_pitch_x_pct / 100 * W;
+    const rowStartY = v.row_start_y_pct / 100 * H;
+    const rowPitchY = v.row_pitch_y_pct / 100 * H;
+    const r = Math.max(2, v.bubble_radius_pct / 100 * W);
+
+    for (let d = 0; d < v.n_digits; d++) {
+      for (let digit = 0; digit < v.digits_per_column; digit++) {
+        const subRow = Math.floor(digit / v.bubbles_per_row);
+        const subCol = digit % v.bubbles_per_row;
+        const x = colStartX + d * colPitchX + subCol * r * 2.6;
+        const y = rowStartY + subRow * rowPitchY;
+        if (x < 0 || x > W || y < 0 || y > H) continue;
+        const c = document.createElementNS(NS, "circle");
+        c.setAttribute("cx", x); c.setAttribute("cy", y); c.setAttribute("r", r);
+        c.setAttribute("fill", "none");
+        c.setAttribute("stroke", digit === 0 ? "#3E63DD" : "#9AA3B0");
+        c.setAttribute("stroke-width", digit === 0 ? 1.6 : 1);
+        svg.appendChild(c);
+      }
+      const label = document.createElementNS(NS, "text");
+      label.setAttribute("x", colStartX + d * colPitchX);
+      label.setAttribute("y", Math.max(10, rowStartY - 8));
+      label.setAttribute("font-size", "9");
+      label.setAttribute("fill", "#667085");
+      label.setAttribute("text-anchor", "middle");
+      label.textContent = (d + 1);
+      svg.appendChild(label);
+    }
+  }
+
+  ids.forEach(id => document.getElementById(id).addEventListener("input", redraw));
+  redraw();
+})();
+</script>
+{% endblock %}

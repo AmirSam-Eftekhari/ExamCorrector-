@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if lang == 'fa' %}ویرایش همه‌ی پاسخ‌ها — {{ sub.source_file }}{% else %}Edit All Answers — {{ sub.source_file }}{% endif %}</h1>
+    <div class="page-subtitle">
+      {% if lang == 'fa' %}هر سوال قابل ویرایش است؛ سوال‌های نیازمند بررسی با رنگ کهربایی مشخص شده‌اند.{% else %}Every question is editable; questions the system flagged for review are marked amber.{% endif %}
+    </div>
+  </div>
+  <a href="{{ url_for('submission_detail', exam_id=exam.id, submission_id=sub.id) }}" class="btn btn-secondary">
+    {% if lang == 'fa' %}بازگشت{% else %}Back{% endif %}
+  </a>
+</div>
+
+<form method="post" action="{{ url_for('submission_review_apply', exam_id=exam.id, submission_id=sub.id) }}">
+  <div class="kb-hint">
+    {% if lang == 'fa' %}میان‌بر صفحه‌کلید:{% else %}Keyboard shortcuts:{% endif %}
+    <span><kbd>&uarr;</kbd>/<kbd>&darr;</kbd> {% if lang == 'fa' %}جابه‌جایی{% else %}move{% endif %}</span>
+    <span><kbd>1</kbd>&ndash;<kbd>4</kbd> {% if lang == 'fa' %}انتخاب گزینه{% else %}pick option{% endif %}</span>
+    <span><kbd>0</kbd> {% if lang == 'fa' %}خالی{% else %}blank{% endif %}</span>
+    <span><kbd>Ctrl</kbd>+<kbd>Enter</kbd> {% if lang == 'fa' %}ذخیره{% else %}save{% endif %}</span>
+  </div>
+  <div class="card">
+    <div class="key-grid" id="keyGrid">
+      {% for q in range(1, template.question_count + 1) if template %}
+      {% set block = template.block_for_question(q) %}
+      {% set a = answers_by_q.get(q) %}
+      {% set current = (a.final_answer if a and a.final_answer else (a.detected_answer if a else None)) %}
+      <div class="key-row {{ 'kb-flagged-row' if q in flagged_qnums }}" data-row="{{ loop.index0 }}" tabindex="-1">
+        <span class="key-qnum">{{ '%03d'|format(q) }}</span>
+        <div class="options">
+          {% for opt in block.option_labels %}
+          <button type="button" class="opt-btn {{ 'selected' if current == opt }}" data-value="{{ opt }}">{{ opt }}</button>
+          {% endfor %}
+          <button type="button" class="opt-btn opt-btn-blank {{ 'selected' if not current }}" data-value="">
+            {% if lang == 'fa' %}—{% else %}—{% endif %}
+          </button>
+        </div>
+        <input type="hidden" name="q_{{ q }}" value="{{ current or '' }}">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary" style="margin-top:14px">{{ icon('check-circle', 16) }}{% if lang == 'fa' %}ذخیره همه{% else %}Save all{% endif %}</button>
+</form>
+{% endblock %}

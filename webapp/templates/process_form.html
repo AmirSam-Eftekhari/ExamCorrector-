@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if lang == 'fa' %}پردازش پاسخ‌برگ{% else %}Process a sheet{% endif %}</h1>
+    <div class="page-subtitle">
+      {% if lang == 'fa' %}یک پاسخ‌برگ پرشده را بارگذاری کن تا با موتور OMR بررسی شود.{% else %}Upload a filled-in sheet to run it through the OMR engine.{% endif %}
+    </div>
+  </div>
+</div>
+
+{% if not templates %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('layers', 26) }}</div>
+  <h3>{% if lang == 'fa' %}ابتدا یک قالب بساز{% else %}Build a template first{% endif %}</h3>
+  <p>
+    {% if lang == 'fa' %}قبل از پردازش پاسخ‌برگ، باید یک قالب از روی نمونه‌ی خالی بسازی.{% else %}You need a template before processing any filled-in sheet.{% endif %}
+  </p>
+  <a href="{{ url_for('templates_page') }}" class="btn btn-primary">
+    {% if lang == 'fa' %}رفتن به صفحه قالب‌ها{% else %}Go to Templates{% endif %}
+  </a>
+</div>
+{% else %}
+<form class="card" method="post" action="{{ url_for('process_submit') }}" enctype="multipart/form-data" data-loading-text="{% if lang == 'fa' %}در حال پردازش…{% else %}Processing…{% endif %}">
+  <div class="field">
+    <label>{% if lang == 'fa' %}قالب{% else %}Template{% endif %}</label>
+    <select name="template_file" required>
+      {% for t in templates %}
+      <option value="{{ t._path.name }}">{{ t.name }} ({{ t.question_count }} {% if lang == 'fa' %}سوال{% else %}q{% endif %})</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label>{% if lang == 'fa' %}تصویر پاسخ‌برگ پرشده{% else %}Filled-in sheet image{% endif %}</label>
+    <input type="file" name="sheet_image" accept="image/*,application/pdf" required>
+  </div>
+  <div class="field">
+    <label>{% if lang == 'fa' %}کلید پاسخ (اختیاری، JSON){% else %}Answer key (optional, JSON){% endif %}</label>
+    <input type="file" name="answer_key" accept="application/json,.json">
+    <div class="hint">
+      {% if lang == 'fa' %}
+      نمونه: {"1": "A", "2": "C"} — اگر داده نشود، فقط نتایج تشخیص نمایش داده می‌شود، بدون نمره.
+      {% else %}
+      Example: {"1": "A", "2": "C"} — if omitted, you'll see detection results without a grade.
+      {% endif %}
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary btn-block">
+    {% if lang == 'fa' %}پردازش کن{% else %}Process{% endif %}
+  </button>
+</form>
+{% endif %}
+{% endblock %}

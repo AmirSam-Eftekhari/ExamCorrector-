@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ exam.name }}</h1>
+    <div class="page-subtitle">{{ exam.subject }} · {{ exam.question_count }} {% if lang == 'fa' %}سوال{% else %}questions{% endif %}</div>
+  </div>
+  <form method="post" action="{{ url_for('exam_delete', exam_id=exam.id) }}" onsubmit="return confirm('{% if lang == "fa" %}این آزمون و همه‌ی نتایج آن حذف شود؟{% else %}Delete this exam and all its results?{% endif %}');">
+    <button type="submit" class="btn btn-secondary">{{ icon('trash', 15) }}{% if lang == 'fa' %}حذف آزمون{% else %}Delete exam{% endif %}</button>
+  </form>
+</div>
+
+<div class="section grid grid-3">
+  <a href="{{ url_for('exam_key', exam_id=exam.id) }}" class="card action-card">
+    <div class="stat-icon">{{ icon('check-circle', 18) }}</div>
+    <div>
+      <h3>{% if lang == 'fa' %}کلید پاسخ{% else %}Answer key{% endif %}</h3>
+      <p class="page-subtitle" style="margin:0">
+        {{ key|length }}/{{ exam.question_count }} {% if lang == 'fa' %}سوال ثبت‌شده{% else %}questions set{% endif %}
+        {% if not key %}<span class="warn-chip">· {% if lang == 'fa' %}هنوز خالی{% else %}not set yet{% endif %}</span>{% endif %}
+      </p>
+    </div>
+  </a>
+  <a href="{{ url_for('exam_batch', exam_id=exam.id) }}" class="card action-card">
+    <div class="stat-icon">{{ icon('upload', 18) }}</div>
+    <div>
+      <h3>{% if lang == 'fa' %}پردازش دسته‌ای{% else %}Batch process{% endif %}</h3>
+      <p class="page-subtitle" style="margin:0">{% if lang == 'fa' %}چند پاسخ‌برگ را همزمان بارگذاری و پردازش کن.{% else %}Upload and process multiple sheets at once.{% endif %}</p>
+    </div>
+  </a>
+  <a href="{{ url_for('exam_results', exam_id=exam.id) }}" class="card action-card">
+    <div class="stat-icon">{{ icon('inbox', 18) }}</div>
+    <div>
+      <h3>{% if lang == 'fa' %}نتایج{% else %}Results{% endif %}</h3>
+      <p class="page-subtitle" style="margin:0">{{ submissions|length }} {% if lang == 'fa' %}پاسخ‌برگ پردازش‌شده{% else %}sheets processed{% endif %}</p>
+    </div>
+  </a>
+  <a href="{{ url_for('exam_analytics', exam_id=exam.id) }}" class="card action-card">
+    <div class="stat-icon">{{ icon('bar-chart', 18) }}</div>
+    <div>
+      <h3>{% if lang == 'fa' %}آمار و تحلیل{% else %}Analytics{% endif %}</h3>
+      <p class="page-subtitle" style="margin:0">{% if lang == 'fa' %}میانگین، توزیع نمرات، دشواری هر سوال.{% else %}Average, distribution, per-question difficulty.{% endif %}</p>
+    </div>
+  </a>
+  <div class="card">
+    <h3>{{ icon('download', 16) }} {% if lang == 'fa' %}خروجی{% else %}Export{% endif %}</h3>
+    <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap">
+      <a href="{{ url_for('export_results_route', exam_id=exam.id) }}" class="btn btn-secondary">{% if lang == 'fa' %}CSV نتایج{% else %}Results CSV{% endif %}</a>
+      <a href="{{ url_for('export_answers_route', exam_id=exam.id) }}" class="btn btn-secondary">{% if lang == 'fa' %}CSV پاسخ‌ها{% else %}Answers CSV{% endif %}</a>
+      <a href="{{ url_for('export_xlsx_route', exam_id=exam.id) }}" class="btn btn-secondary">{{ icon('file-spreadsheet', 15) }}{% if lang == 'fa' %}اکسل{% else %}Excel{% endif %}</a>
+      <a href="{{ url_for('export_pdf_route', exam_id=exam.id) }}" class="btn btn-secondary">{{ icon('file-text', 15) }}{% if lang == 'fa' %}گزارش PDF{% else %}PDF report{% endif %}</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3>{% if lang == 'fa' %}تنظیمات نمره‌دهی{% else %}Scoring{% endif %}</h3>
+    <p class="page-subtitle" style="margin:0">
+      {% if lang == 'fa' %}درست: {{ exam.scoring.correct }} · غلط: {{ exam.scoring.wrong }} · خالی: {{ exam.scoring.blank }}{% else %}Correct: {{ exam.scoring.correct }} · Wrong: {{ exam.scoring.wrong }} · Blank: {{ exam.scoring.blank }}{% endif %}
+    </p>
+  </div>
+</div>
+
+{% if submissions %}
+<div class="section">
+  <h2 class="section-title">{% if lang == 'fa' %}آخرین پاسخ‌برگ‌ها{% else %}Recent sheets{% endif %}</h2>
+  <div class="card" style="padding:0">
+    <table class="results">
+      <thead><tr>
+        <th>{% if lang == 'fa' %}فایل{% else %}File{% endif %}</th>
+        <th>{% if lang == 'fa' %}شناسه{% else %}Student ID{% endif %}</th>
+        <th>{% if lang == 'fa' %}نمره{% else %}Score{% endif %}</th>
+        <th>{% if lang == 'fa' %}وضعیت{% else %}Status{% endif %}</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+      {% for s in submissions[-8:][::-1] %}
+        <tr>
+          <td>{{ s.source_file }}</td>
+          <td>{{ s.student_id_detected or '—' }}</td>
+          <td>{{ s.percentage ~ '%' if s.percentage is not none else '—' }}</td>
+          <td><span class="badge {{ 'badge-green' if s.status.value == 'COMPLETED' else ('badge-red' if s.status.value == 'FAILED' else 'badge-amber') }}">{{ s.status.value }}</span></td>
+          <td><a href="{{ url_for('submission_detail', exam_id=exam.id, submission_id=s.id) }}" class="btn btn-secondary">{% if lang == 'fa' %}مشاهده{% else %}View{% endif %}</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

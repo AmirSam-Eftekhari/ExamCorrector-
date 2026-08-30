@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ tr('nav.students') }}</h1>
+    <div class="page-subtitle">
+      {% if lang == 'fa' %}هنگام پردازش دسته‌ای، شناسه‌ی تشخیص‌داده‌شده با این لیست تطبیق داده می‌شود.{% else %}Detected student IDs are cross-checked against this roster during batch processing.{% endif %}
+    </div>
+  </div>
+  {% if students %}
+  <a href="{{ url_for('students_export') }}" class="btn btn-secondary">
+    {{ icon('download', 15) }}{% if lang == 'fa' %}خروجی CSV{% else %}Export CSV{% endif %}
+  </a>
+  {% endif %}
+</div>
+
+<div class="section">
+  <form class="card" method="post" action="{{ url_for('students_import') }}" enctype="multipart/form-data" style="max-width:640px">
+    <div class="field">
+      <label>{% if lang == 'fa' %}وارد کردن فایل CSV{% else %}Import CSV{% endif %}</label>
+      <input type="file" name="roster_csv" accept=".csv,text/csv" required>
+      <div class="hint">
+        {% if lang == 'fa' %}
+        ستون‌ها: student_id, name, group (یا class), notes — فقط student_id الزامی است.
+        {% else %}
+        Columns: student_id, name, group (or class), notes — only student_id is required.
+        {% endif %}
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">{% if lang == 'fa' %}وارد کردن{% else %}Import{% endif %}</button>
+  </form>
+</div>
+
+{% if not students %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('users', 26) }}</div>
+  <h3>{% if lang == 'fa' %}هنوز دانش‌آموزی ثبت نشده{% else %}No students yet{% endif %}</h3>
+  <p>{% if lang == 'fa' %}یک فایل CSV وارد کن تا فهرست دانش‌آموزان ساخته شود.{% else %}Import a CSV to build the roster.{% endif %}</p>
+</div>
+{% else %}
+<div class="section">
+  <div class="card" style="padding:0">
+    <table class="results">
+      <thead><tr>
+        <th>{% if lang == 'fa' %}شناسه{% else %}Student ID{% endif %}</th>
+        <th>{% if lang == 'fa' %}اسم{% else %}Name{% endif %}</th>
+        <th>{% if lang == 'fa' %}کلاس{% else %}Group{% endif %}</th>
+        <th>{% if lang == 'fa' %}یادداشت{% else %}Notes{% endif %}</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+      {% for s in students %}
+        <tr>
+          <td>{{ s.student_id }}</td>
+          <td>{{ s.name or '—' }}</td>
+          <td>{{ s.group or '—' }}</td>
+          <td>{{ s.notes or '—' }}</td>
+          <td>
+            <form method="post" action="{{ url_for('student_delete', student_id=s.student_id) }}"
+                  onsubmit="return confirm('{% if lang == "fa" %}این دانش‌آموز حذف شود؟{% else %}Delete this student?{% endif %}');">
+              <button type="submit" class="btn btn-secondary">{% if lang == 'fa' %}حذف{% else %}Delete{% endif %}</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

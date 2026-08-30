@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ tr('action.new_exam') }}</h1>
+  </div>
+</div>
+
+{% if not templates %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('layers', 26) }}</div>
+  <h3>{% if lang == 'fa' %}ابتدا یک قالب بساز{% else %}Build a template first{% endif %}</h3>
+  <a href="{{ url_for('templates_page') }}" class="btn btn-primary">{% if lang == 'fa' %}رفتن به قالب‌ها{% else %}Go to Templates{% endif %}</a>
+</div>
+{% else %}
+<form class="card" method="post">
+  <div class="field">
+    <label>{% if lang == 'fa' %}نام آزمون{% else %}Exam name{% endif %}</label>
+    <input type="text" name="name" required placeholder="{% if lang == 'fa' %}مثلاً: میان‌ترم فیزیک{% else %}e.g. Physics Midterm{% endif %}">
+  </div>
+  <div class="grid grid-2">
+    <div class="field">
+      <label>{% if lang == 'fa' %}درس / موضوع{% else %}Subject{% endif %}</label>
+      <input type="text" name="subject">
+    </div>
+    <div class="field">
+      <label>{% if lang == 'fa' %}قالب پاسخ‌برگ{% else %}Answer sheet template{% endif %}</label>
+      <select name="template_file" required>
+        {% for t in templates %}
+        <option value="{{ t._path.name }}">{{ t.name }} ({{ t.question_count }})</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="field">
+    <label>{% if lang == 'fa' %}توضیحات (اختیاری){% else %}Description (optional){% endif %}</label>
+    <textarea name="description" rows="2"></textarea>
+  </div>
+
+  <h3 style="margin:18px 0 10px">{% if lang == 'fa' %}قوانین نمره‌دهی{% else %}Scoring rules{% endif %}</h3>
+  <div class="grid grid-3">
+    <div class="field">
+      <label>{% if lang == 'fa' %}نمره‌ی درست{% else %}Correct{% endif %}</label>
+      <input type="text" name="correct" value="1">
+    </div>
+    <div class="field">
+      <label>{% if lang == 'fa' %}نمره‌ی غلط{% else %}Wrong{% endif %}</label>
+      <input type="text" name="wrong" value="0">
+      <div class="hint">{% if lang == 'fa' %}برای نمره‌ی منفی، عدد منفی بده{% else %}Use a negative number for negative marking (e.g. -0.25){% endif %}</div>
+    </div>
+    <div class="field">
+      <label>{% if lang == 'fa' %}نمره‌ی خالی{% else %}Blank{% endif %}</label>
+      <input type="text" name="blank" value="0">
+    </div>
+  </div>
+  <div class="field">
+    <label>{% if lang == 'fa' %}سیاست چند-علامتی{% else %}Multiple-mark policy{% endif %}</label>
+    <select name="multiple_mark_policy">
+      <option value="wrong">{% if lang == 'fa' %}مثل جواب غلط{% else %}Treat as wrong{% endif %}</option>
+      <option value="invalid">{% if lang == 'fa' %}نمره‌ی صفر ثابت{% else %}Fixed zero (invalid){% endif %}</option>
+      <option value="manual_review">{% if lang == 'fa' %}نیاز به بازبینی دستی{% else %}Require manual review{% endif %}</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-primary btn-block">{% if lang == 'fa' %}ساخت آزمون{% else %}Create exam{% endif %}</button>
+</form>
+{% endif %}
+{% endblock %}

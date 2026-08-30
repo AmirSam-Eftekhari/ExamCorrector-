@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ sheet_name }}</h1>
+    <div class="page-subtitle">
+      {% if lang == 'fa' %}وضعیت:{% else %}Status:{% endif %}
+      <span class="badge {{ 'badge-green' if result.status.value == 'COMPLETED' else ('badge-red' if result.status.value == 'FAILED' else 'badge-amber') }}">
+        {{ result.status.value }}
+      </span>
+    </div>
+  </div>
+  {% if flagged %}
+  <a href="{{ url_for('review', token=token) }}" class="btn btn-primary">
+    {% if lang == 'fa' %}بازبینی {{ flagged|length }} مورد مشکوک{% else %}Review {{ flagged|length }} flagged{% endif %}
+  </a>
+  {% endif %}
+</div>
+
+{% if result.status.value == 'FAILED' %}
+<div class="card">
+  <h3>{% if lang == 'fa' %}پردازش ناموفق بود{% else %}Processing failed{% endif %}</h3>
+  <p>{{ result.failure_reason }}</p>
+</div>
+{% else %}
+
+{% if grade %}
+<div class="section">
+  <div class="card">
+    <div class="grade-summary">
+      <div class="metric"><div class="n">{{ grade.total_score }}/{{ grade.max_score }}</div><div class="l">{% if lang == 'fa' %}نمره{% else %}Score{% endif %}</div></div>
+      <div class="metric"><div class="n">{{ grade.percentage }}%</div><div class="l">{% if lang == 'fa' %}درصد{% else %}Percentage{% endif %}</div></div>
+      <div class="metric"><div class="n" style="color:var(--green)">{{ grade.correct }}</div><div class="l">{% if lang == 'fa' %}درست{% else %}Correct{% endif %}</div></div>
+      <div class="metric"><div class="n" style="color:var(--red)">{{ grade.wrong }}</div><div class="l">{% if lang == 'fa' %}غلط{% else %}Wrong{% endif %}</div></div>
+      <div class="metric"><div class="n" style="color:var(--gray)">{{ grade.blank }}</div><div class="l">{% if lang == 'fa' %}خالی{% else %}Blank{% endif %}</div></div>
+      <div class="metric"><div class="n" style="color:var(--amber)">{{ grade.multiple_or_invalid }}</div><div class="l">{% if lang == 'fa' %}چندگانه{% else %}Multiple{% endif %}</div></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="section grid grid-2">
+  <div>
+    <h2 class="section-title">{% if lang == 'fa' %}تصویر ثبت‌شده با رنگ‌بندی نتیجه{% else %}Registered sheet, color-coded{% endif %}</h2>
+    <div class="image-panel">
+      {% if annotated_b64 %}
+      <img src="data:image/png;base64,{{ annotated_b64 }}" alt="annotated result">
+      {% else %}
+      <p style="color:#8b93a3">{% if lang == 'fa' %}تصویری در دسترس نیست{% else %}No image available{% endif %}</p>
+      {% endif %}
+    </div>
+  </div>
+  <div>
+    <h2 class="section-title">{% if lang == 'fa' %}خلاصه تشخیصی{% else %}Diagnostic summary{% endif %}</h2>
+    <div class="diagnostic-box">{{ diagnostic_text }}</div>
+
+    {% if result.student_id %}
+    <h2 class="section-title" style="margin-top:18px">{% if lang == 'fa' %}شناسه دانش‌آموز{% else %}Student ID{% endif %}</h2>
+    <div class="card">
+      <div>{{ result.student_id.partial_id or '—' }}</div>
+      <div class="page-subtitle" style="margin-top:4px">
+        {% if lang == 'fa' %}اطمینان: {{ result.student_id.overall_confidence }}٪{% else %}Confidence: {{ result.student_id.overall_confidence }}%{% endif %}
+        {% if result.student_id.needs_review %} · <span class="warn-chip">{% if lang == 'fa' %}نیازمند بازبینی{% else %}needs review{% endif %}</span>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if result.text_fields %}
+    <h2 class="section-title" style="margin-top:18px">{% if lang == 'fa' %}فیلدهای متنی{% else %}Text fields{% endif %}</h2>
+    <div class="card" style="padding:0">
+      <table class="results">
+        <tbody>
+        {% for tf in result.text_fields %}
+          <tr>
+            <td>{{ tf.name }}</td>
+            <td>{{ tf.text if tf.text else '(' + tf.status.lower() + ')' }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="section-title">{% if lang == 'fa' %}همه پاسخ‌ها ({{ result.answers|length }}){% else %}All answers ({{ result.answers|length }}){% endif %}</h2>
+  <div class="results-grid">
+    {% for a in result.answers %}
+    <div class="q-chip">
+      <span class="qnum">Q{{ '%03d'|format(a.question_number) }}</span>
+      {% if a.final_answer is not none or (a.review_status.value == 'CORRECTED') %}
+      <span class="badge badge-green" title="{% if lang == 'fa' %}تصحیح‌شده توسط کاربر{% else %}human-corrected{% endif %}">
+        {{ a.final_answer or '—' }} {{ icon('check-circle', 13) }}
+      </span>
+      {% else %}
+      <span class="badge {{ 'badge-green' if a.status.value=='HIGH_CONFIDENCE' else ('badge-red' if a.status.value=='MULTIPLE_MARK' else ('badge-gray' if a.status.value=='BLANK' else 'badge-amber')) }}">
+        {{ a.detected_answer or '—' }}
+      </span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if lang == 'fa' %}بازبینی — {{ sub.source_file }}{% else %}Review — {{ sub.source_file }}{% endif %}</h1>
+    <div class="page-subtitle">{{ flagged|length }} {% if lang == 'fa' %}سوال نیاز به بررسی دارد{% else %}question(s) need a check{% endif %}</div>
+  </div>
+  <a href="{{ url_for('submission_edit_all', exam_id=exam.id, submission_id=sub.id) }}" class="btn btn-secondary">
+    {{ icon('edit', 15) }}{% if lang == 'fa' %}ویرایش همه‌ی پاسخ‌ها{% else %}Edit all answers{% endif %}
+  </a>
+  <a href="{{ url_for('submission_detail', exam_id=exam.id, submission_id=sub.id) }}" class="btn btn-secondary">
+    {% if lang == 'fa' %}بازگشت{% else %}Back{% endif %}
+  </a>
+</div>
+
+{% if not flagged %}
+<div class="card empty-state"><div class="empty-icon">{{ icon('check-circle', 26) }}</div><h3>{{ tr('empty.review_queue.title') }}</h3></div>
+{% else %}
+<form method="post" action="{{ url_for('submission_review_apply', exam_id=exam.id, submission_id=sub.id) }}">
+  {% for a in flagged %}
+  {% set block = template.block_for_question(a.question_number) if template else none %}
+  <div class="review-item">
+    {% if crops.get(a.question_number) %}
+    <img src="data:image/png;base64,{{ crops[a.question_number] }}" alt="Q{{ a.question_number }}">
+    {% endif %}
+    <div class="meta">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <strong>Q{{ '%03d'|format(a.question_number) }}</strong>
+        <span class="badge {{ 'badge-red' if a.status.value=='MULTIPLE_MARK' else 'badge-amber' }}">{{ a.status.value }}</span>
+        <span class="page-subtitle" style="margin:0">{% if lang == 'fa' %}اطمینان: {{ a.confidence }}٪{% else %}confidence: {{ a.confidence }}%{% endif %}</span>
+      </div>
+      <div class="page-subtitle">{{ (a.explanation or {}).get('reason', '') }}</div>
+      <div class="options">
+        {% if block %}
+        {% for opt in block.option_labels %}
+        <button type="button" class="opt-btn {{ 'selected' if a.detected_answer == opt }}" data-value="{{ opt }}">{{ opt }}</button>
+        {% endfor %}
+        {% endif %}
+        <button type="button" class="opt-btn {{ 'selected' if not a.detected_answer }}" data-value="">
+          {% if lang == 'fa' %}خالی{% else %}Blank{% endif %}
+        </button>
+      </div>
+      <input type="hidden" name="q_{{ a.question_number }}" value="{{ a.detected_answer or '' }}">
+    </div>
+  </div>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary" style="margin-top:10px">
+    {% if lang == 'fa' %}ذخیره تصحیح‌ها{% else %}Save corrections{% endif %}
+  </button>
+</form>
+{% endif %}
+{% endblock %}

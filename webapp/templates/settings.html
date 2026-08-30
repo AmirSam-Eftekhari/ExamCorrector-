@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ tr('nav.settings') }}</h1>
+  </div>
+</div>
+
+<form method="post" class="card" style="max-width:520px">
+  <div class="field">
+    <label>{% if lang == 'fa' %}پوسته{% else %}Appearance{% endif %}</label>
+    <select name="theme">
+      <option value="system" {{ 'selected' if current_theme=='system' }}>{{ tr('theme.system') }}</option>
+      <option value="light" {{ 'selected' if current_theme=='light' }}>{{ tr('theme.light') }}</option>
+      <option value="dark" {{ 'selected' if current_theme=='dark' }}>{{ tr('theme.dark') }}</option>
+    </select>
+    <div class="hint">
+      {% if lang == 'fa' %}«سیستم» از تنظیمات تاریک/روشن مرورگر شما پیروی می‌کند.{% else %}"System" follows your browser/OS light-dark preference.{% endif %}
+    </div>
+  </div>
+
+  <div class="field">
+    <label>{% if lang == 'fa' %}زبان{% else %}Language{% endif %}</label>
+    <select name="language">
+      <option value="fa" {{ 'selected' if current_lang=='fa' }}>فارسی</option>
+      <option value="en" {{ 'selected' if current_lang=='en' }}>English</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn btn-primary">{% if lang == 'fa' %}ذخیره{% else %}Save{% endif %}</button>
+</form>
+
+<div class="section" style="margin-top:24px">
+  <div class="card">
+    <h3>{% if lang == 'fa' %}درباره{% else %}About{% endif %}</h3>
+    <p class="page-subtitle" style="margin:0">
+      ExamCorrector — {% if lang == 'fa' %}پلتفرم آفلاین تصحیح پاسخ‌برگ. هیچ داده‌ای از این دستگاه خارج نمی‌شود؛ برنامه فقط روی 127.0.0.1 گوش می‌دهد.{% else %}offline OMR & exam assessment platform. Nothing leaves this machine; the app only listens on 127.0.0.1.{% endif %}
+    </p>
+  </div>
+</div>
+<div class="section" style="margin-top:24px">
+  <div class="card">
+    <h3>{% if lang == 'fa' %}تشخیص متن (OCR){% else %}Text recognition (OCR){% endif %}</h3>
+    <p class="page-subtitle" style="margin:0 0 8px">
+      {% if lang == 'fa' %}زبان‌های فعال برای خواندن فیلدهای متنی (نام/کلاس/تاریخ): {{ ocr_langs|join('، ') }}{% else %}Active languages for reading text fields (Name/Class/Date): {{ ocr_langs|join(', ') }}{% endif %}
+    </p>
+    {% if 'fas' not in ocr_langs %}
+    <p class="page-subtitle" style="margin:0">
+      {% if lang == 'fa' %}
+      برای تشخیص نام‌های فارسی، بسته‌ی زبان فارسی Tesseract را روی سیستم خودت نصب کن:
+      <code>sudo apt-get install tesseract-ocr-fas</code> (روی ویندوز/مک: فایل <code>fas.traineddata</code> را از مخزن رسمی Tesseract دانلود و در پوشه‌ی tessdata قرار بده) — سپس برنامه را دوباره اجرا کن.
+      {% else %}
+      To read Persian names, install the Tesseract Persian language pack on your machine:
+      <code>sudo apt-get install tesseract-ocr-fas</code> (on Windows/Mac: download <code>fas.traineddata</code> from Tesseract's official tessdata repository into your tessdata folder) — then restart the app.
+      {% endif %}
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

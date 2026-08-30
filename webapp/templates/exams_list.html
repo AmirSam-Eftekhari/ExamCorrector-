@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ tr('nav.exams') }}</h1>
+    <div class="page-subtitle">
+      {% if lang == 'fa' %}هر آزمون: یک قالب + یک کلید پاسخ + مجموعه‌ای از پاسخ‌برگ‌های پردازش‌شده.{% else %}Each exam: one template + one answer key + a set of processed sheets.{% endif %}
+    </div>
+  </div>
+  <a href="{{ url_for('exam_new') }}" class="btn btn-primary">{{ tr('action.new_exam') }}</a>
+</div>
+
+{% if not exams %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('clipboard', 26) }}</div>
+  <h3>{{ tr('empty.exams.title') }}</h3>
+  <p>{{ tr('empty.exams.body') }}</p>
+  <a href="{{ url_for('exam_new') }}" class="btn btn-primary">{{ tr('action.new_exam') }}</a>
+</div>
+{% else %}
+<div class="grid grid-3">
+  {% for e in exams %}
+  <a href="{{ url_for('exam_detail', exam_id=e.id) }}" class="card template-card">
+    <div class="name">{{ e.name }}</div>
+    <div class="meta">{{ e.subject or (tr('nav.exams')) }} · {{ e.question_count }} {% if lang == 'fa' %}سوال{% else %}questions{% endif %}</div>
+    <div class="meta">
+      {{ counts.get(e.id, 0) }} {% if lang == 'fa' %}پاسخ‌برگ{% else %}sheets{% endif %}
+      {% if key_counts.get(e.id, 0) == 0 %}
+        <span class="warn-chip">· {% if lang == 'fa' %}بدون کلید پاسخ{% else %}no answer key{% endif %}</span>
+      {% else %}
+        · {{ key_counts.get(e.id, 0) }}/{{ e.question_count }} {% if lang == 'fa' %}کلید ثبت‌شده{% else %}keyed{% endif %}
+      {% endif %}
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

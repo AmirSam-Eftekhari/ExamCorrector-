@@ -1,0 +1,40 @@
+# Core (required for the CV/OMR engine, database, and CLI scripts -- all
+# tested and working without anything below this line):
+opencv-python>=4.9,<5
+numpy>=1.26,<3
+Pillow>=10.0
+pytesseract>=0.3.10          # requires the `tesseract` binary on PATH (apt install tesseract-ocr)
+scipy>=1.11                  # available for future algorithm work; not a hard dependency of any current module
+scikit-image>=0.22           # ditto
+
+# Web UI (webapp/server.py, launched by main.py) -- tested and working:
+Flask>=3.0
+
+# Desktop UI (Phase 1 shell in app/ui/ -- an alternative to the web UI,
+# written but NOT installable/testable in the sandbox this project was
+# built in, which has no network access):
+PySide6>=6.6
+
+# PDF import support (spec section 3) -- not yet wired into any pipeline code:
+PyMuPDF>=1.23
+
+# Spreadsheet export (spec section 37) -- tested and working (webapp export routes + XLSX unit tests):
+openpyxl>=3.1
+pandas>=2.1                  # not currently used by any export path; kept for future data-analysis work
+
+# PDF report export (spec section 37/36) -- tested and working:
+reportlab>=4.0
+pypdf>=4.0                   # used only by the test suite, to verify generated PDF content
+
+# PDF sheet upload (batch/quick process/template calibration can accept a
+# .pdf, not just images -- each page becomes its own sheet). Requires the
+# poppler-utils system package (pdftoppm/pdfinfo), NOT installed via pip --
+# on Debian/Ubuntu: sudo apt-get install poppler-utils
+pdf2image>=1.17
+
+# Packaging (spec section 65) -- not yet configured:
+pyinstaller>=6.3
+
+# Dev/testing convenience (the test suite itself uses only the stdlib
+# `unittest` module and runs without this):
+pytest>=8.0

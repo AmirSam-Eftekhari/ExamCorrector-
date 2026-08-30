@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ tr('nav.dashboard') }}</h1>
+    <div class="page-subtitle">
+      {% if lang == 'fa' %}پلتفرم آفلاین تصحیح پاسخ‌برگ{% else %}Offline answer-sheet correction platform{% endif %}
+    </div>
+  </div>
+  <a href="{{ url_for('process_form') }}" class="btn btn-primary">
+    {{ icon('plus', 16) }}{% if lang == 'fa' %}پردازش پاسخ‌برگ جدید{% else %}Process a sheet{% endif %}
+  </a>
+</div>
+
+<div class="section">
+  <div class="grid grid-3">
+    <div class="card stat-card">
+      <div>
+        <div class="stat-number">{{ templates|length }}</div>
+        <div class="stat-label">{% if lang == 'fa' %}قالب موجود{% else %}Templates{% endif %}</div>
+      </div>
+      <div class="stat-icon">{{ icon('layers', 18) }}</div>
+    </div>
+    <div class="card stat-card">
+      <div>
+        <div class="stat-number">{{ recent|length }}</div>
+        <div class="stat-label">{% if lang == 'fa' %}پردازش این جلسه{% else %}Processed this session{% endif %}</div>
+      </div>
+      <div class="stat-icon">{{ icon('upload', 18) }}</div>
+    </div>
+    <div class="card stat-card">
+      <div>
+        <div class="stat-number">{{ recent|selectattr('1.answer_key')|list|length }}</div>
+        <div class="stat-label">{% if lang == 'fa' %}با کلید نمره‌دهی شده{% else %}Graded with a key{% endif %}</div>
+      </div>
+      <div class="stat-icon">{{ icon('check-circle', 18) }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2 class="section-title">{% if lang == 'fa' %}اقدامات سریع{% else %}Quick actions{% endif %}</h2>
+  <div class="grid grid-2">
+    <a href="{{ url_for('templates_page') }}" class="card action-card">
+      <div class="stat-icon">{{ icon('layers', 18) }}</div>
+      <div>
+        <h3>{% if lang == 'fa' %}ساخت / مدیریت قالب{% else %}Create / manage templates{% endif %}</h3>
+        <p class="page-subtitle" style="margin:0">
+          {% if lang == 'fa' %}از روی یک پاسخ‌برگ خالی، قالب را خودکار بساز.{% else %}Auto-build a template from a clean sheet.{% endif %}
+        </p>
+      </div>
+    </a>
+    <a href="{{ url_for('process_form') }}" class="card action-card">
+      <div class="stat-icon">{{ icon('upload', 18) }}</div>
+      <div>
+        <h3>{% if lang == 'fa' %}پردازش و نمره‌دهی{% else %}Process & grade{% endif %}</h3>
+        <p class="page-subtitle" style="margin:0">
+          {% if lang == 'fa' %}پاسخ‌برگ پرشده را وارد کن و نتیجه را با جزئیات ببین.{% else %}Upload a filled sheet and see full results.{% endif %}
+        </p>
+      </div>
+    </a>
+  </div>
+</div>
+
+{% if recent %}
+<div class="section">
+  <h2 class="section-title">{% if lang == 'fa' %}پردازش‌های اخیر{% else %}Recent processing{% endif %}</h2>
+  <div class="card" style="padding:0">
+    <table class="results">
+      <thead><tr>
+        <th>{% if lang == 'fa' %}فایل{% else %}File{% endif %}</th>
+        <th>{% if lang == 'fa' %}وضعیت{% else %}Status{% endif %}</th>
+        <th></th>
+      </tr></thead>
+      <tbody>
+      {% for token, s in recent %}
+        <tr>
+          <td>{{ s.sheet_name }}</td>
+          <td>{{ s.result.status.value }}</td>
+          <td><a href="{{ url_for('process_result', token=token) }}" class="btn btn-secondary">
+            {{ icon('eye', 15) }}{% if lang == 'fa' %}مشاهده{% else %}View{% endif %}
+          </a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card empty-state">
+  <div class="empty-icon">{{ icon('inbox', 30) }}</div>
+  <h3>{% if lang == 'fa' %}هنوز پردازشی انجام نشده{% else %}Nothing processed yet{% endif %}</h3>
+  <p>{% if lang == 'fa' %}یک پاسخ‌برگ را پردازش کن تا اینجا نمایش داده شود.{% else %}Process a sheet to see it show up here.{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

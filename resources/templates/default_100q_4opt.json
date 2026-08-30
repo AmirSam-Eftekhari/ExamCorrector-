@@ -1,0 +1,176 @@
+{
+  "name": "Default 100Q 4-option",
+  "description": "Auto-calibrated from a clean sample sheet. Review before production use.",
+  "template_version": 1,
+  "version": 1,
+  "canvas_size": [
+    2000,
+    2828
+  ],
+  "registration": {
+    "strategy": "fiducial_markers",
+    "marker_margin_frac": 0.03
+  },
+  "blocks": [
+    {
+      "block_id": "block_1",
+      "question_start": 1,
+      "question_end": 25,
+      "option_labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "row_start_y": 0.24876237623762376,
+      "row_pitch_y": 0.029025223950966524,
+      "col_start_x": 0.07276999664306641,
+      "col_pitch_x": 0.0375933354695638,
+      "bubble_radius": 0.007800000190734863
+    },
+    {
+      "block_id": "block_2",
+      "question_start": 26,
+      "question_end": 50,
+      "option_labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "row_start_y": 0.24876237623762376,
+      "row_pitch_y": 0.029025223950966524,
+      "col_start_x": 0.31925,
+      "col_pitch_x": 0.0376199951171875,
+      "bubble_radius": 0.007800000190734863
+    },
+    {
+      "block_id": "block_3",
+      "question_start": 51,
+      "question_end": 75,
+      "option_labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "row_start_y": 0.24876237623762376,
+      "row_pitch_y": 0.029025223950966524,
+      "col_start_x": 0.56572998046875,
+      "col_pitch_x": 0.03757334391276041,
+      "bubble_radius": 0.007800000190734863
+    },
+    {
+      "block_id": "block_4",
+      "question_start": 76,
+      "question_end": 100,
+      "option_labels": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "row_start_y": 0.24876237623762376,
+      "row_pitch_y": 0.029025223950966524,
+      "col_start_x": 0.8122100219726562,
+      "col_pitch_x": 0.037539998372395834,
+      "bubble_radius": 0.007800000190734863
+    }
+  ],
+  "student_id": {
+    "present": true,
+    "n_digits": 8,
+    "digits_per_column": 10,
+    "rows_per_column": 2,
+    "box": [
+      0.04625,
+      0.1592998585572843,
+      0.92325,
+      0.22896039603960397
+    ],
+    "col_start_x": 0.05525,
+    "col_pitch_x": 0.107375,
+    "row_start_y": 0.16566478076379065,
+    "row_pitch_y": 0.028465346534653466,
+    "bubbles_per_row": 5,
+    "bubble_radius": 0.0037000000476837156,
+    "needs_confirmation": true
+  },
+  "text_fields": [
+    {
+      "name": "Version",
+      "box": [
+        0.6025,
+        0.13437057991513437,
+        0.9525,
+        0.15311173974540312
+      ],
+      "line_box": [
+        0.6325,
+        0.15381895332390383,
+        0.9375,
+        0.15487977369165487
+      ]
+    },
+    {
+      "name": "ibject",
+      "box": [
+        0.186,
+        0.13437057991513437,
+        0.5255,
+        0.15311173974540312
+      ],
+      "line_box": [
+        0.216,
+        0.15381895332390383,
+        0.5105,
+        0.15487977369165487
+      ]
+    },
+    {
+      "name": "Date",
+      "box": [
+        0.75,
+        0.10997171145685997,
+        0.9525,
+        0.12871287128712872
+      ],
+      "line_box": [
+        0.78,
+        0.12942008486562942,
+        0.9375,
+        0.13083451202263083
+      ]
+    },
+    {
+      "name": "Class",
+      "box": [
+        0.4855,
+        0.10997171145685997,
+        0.6935,
+        0.12871287128712872
+      ],
+      "line_box": [
+        0.5155,
+        0.12942008486562942,
+        0.6785,
+        0.13083451202263083
+      ]
+    },
+    {
+      "name": "Name",
+      "box": [
+        0.1045,
+        0.10997171145685997,
+        0.429,
+        0.12871287128712872
+      ],
+      "line_box": [
+        0.1345,
+        0.12942008486562942,
+        0.414,
+        0.13083451202263083
+      ]
+    }
+  ]
+}
