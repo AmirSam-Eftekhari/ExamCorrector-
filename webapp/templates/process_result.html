@@ -73,7 +73,10 @@
         {% for tf in result.text_fields %}
           <tr>
             <td>{{ tf.name }}</td>
-            <td>{{ tf.text if tf.text else '(' + tf.status.lower() + ')' }}</td>
+            <td>
+              {{ tf.text if tf.text else '(' + tf.status.lower() + ')' }}
+              {% if tf.status != 'EMPTY' %}<span style="color:var(--muted,#888); font-size:0.85em">&nbsp;&middot; {{ tf.confidence }}%</span>{% endif %}
+            </td>
           </tr>
         {% endfor %}
         </tbody>

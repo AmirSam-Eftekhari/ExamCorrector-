@@ -109,6 +109,8 @@ class Submission:
     student_id_detected: Optional[str] = None
     student_id_confidence: float = 0.0
     student_name_detected: Optional[str] = None
+    student_id_corrected: Optional[str] = None
+    student_name_corrected: Optional[str] = None
     quality_score: float = 0.0
     status: SubmissionStatus = SubmissionStatus.QUEUED
     score: Optional[float] = None
@@ -117,3 +119,13 @@ class Submission:
     stored_image_path: Optional[str] = None
     id: Optional[int] = None
     timestamp: Optional[datetime] = None
+
+    @property
+    def student_id_effective(self) -> Optional[str]:
+        """The corrected ID if a human has fixed it, else whatever OMR detected."""
+        return self.student_id_corrected or self.student_id_detected
+
+    @property
+    def student_name_effective(self) -> Optional[str]:
+        """The corrected name if a human has fixed it, else whatever OCR detected."""
+        return self.student_name_corrected or self.student_name_detected

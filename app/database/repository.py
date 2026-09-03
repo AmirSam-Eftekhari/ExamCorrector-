@@ -129,6 +129,8 @@ def _submission_from_row(row: sqlite3.Row) -> Submission:
         id=row["id"], exam_id=row["exam_id"], source_file=row["source_file"],
         student_id_detected=row["student_id"],
         student_name_detected=row["student_name"] if "student_name" in keys else None,
+        student_id_corrected=row["student_id_corrected"] if "student_id_corrected" in keys else None,
+        student_name_corrected=row["student_name_corrected"] if "student_name_corrected" in keys else None,
         student_id_confidence=(row["student_id_confidence"] if "student_id_confidence" in keys else 0.0) or 0.0,
         quality_score=row["quality_score"],
         status=SubmissionStatus(row["status"]), score=row["score"], percentage=row["percentage"],
@@ -136,6 +138,18 @@ def _submission_from_row(row: sqlite3.Row) -> Submission:
         stored_image_path=row["stored_image_path"] if "stored_image_path" in keys else None,
         timestamp=row["timestamp"],
     )
+
+
+def apply_identity_correction(conn: sqlite3.Connection, submission_id: int,
+                               student_id: str | None, student_name: str | None) -> None:
+    """Save a human correction for a misread Student ID / Name. Empty
+    string means "clear the correction, go back to the detected value" --
+    stored as NULL, not '', so student_id_effective correctly falls back."""
+    conn.execute(
+        "UPDATE submission SET student_id_corrected = ?, student_name_corrected = ? WHERE id = ?",
+        (student_id or None, student_name or None, submission_id),
+    )
+    conn.commit()
 
 
 # --------------------------------------------------------- AnswerResult ----

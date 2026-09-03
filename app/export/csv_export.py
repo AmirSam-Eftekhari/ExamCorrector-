@@ -22,7 +22,7 @@ def export_results_csv(conn: sqlite3.Connection, exam_id: int) -> str:
     ])
     for s in submissions:
         writer.writerow([
-            s.id, s.student_id_detected or "", s.student_name_detected or "", s.source_file,
+            s.id, s.student_id_effective or "", s.student_name_effective or "", s.source_file,
             s.status.value, s.quality_score, s.score if s.score is not None else "",
             s.percentage if s.percentage is not None else "", s.timestamp,
         ])

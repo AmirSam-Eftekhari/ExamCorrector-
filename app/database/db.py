@@ -47,6 +47,8 @@ CREATE TABLE IF NOT EXISTS submission (
     exam_id INTEGER NOT NULL REFERENCES exam(id) ON DELETE CASCADE,
     student_id TEXT,
     student_name TEXT,
+    student_id_corrected TEXT,
+    student_name_corrected TEXT,
     student_id_confidence REAL DEFAULT 0,
     source_file TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'QUEUED',
@@ -95,7 +97,7 @@ CREATE TABLE IF NOT EXISTS app_settings (
 );
 """
 
-CURRENT_SCHEMA_VERSION = 4
+CURRENT_SCHEMA_VERSION = 5
 
 
 def connect(db_path: Path) -> sqlite3.Connection:
@@ -137,5 +139,17 @@ def _migrate(conn: sqlite3.Connection, from_version: int, to_version: int) -> No
         existing = {row["name"] for row in conn.execute("PRAGMA table_info(student)")}
         if "notes" not in existing:
             conn.execute("ALTER TABLE student ADD COLUMN notes TEXT DEFAULT ''")
+    if from_version < 5:
+        # Manual correction for a misread Student ID / Name -- kept as
+        # separate columns rather than overwriting student_id/student_name
+        # directly, matching the same detected-vs-corrected pattern already
+        # used for question answers (review_status/final_answer): the
+        # original OCR/bubble reading stays visible for audit even after a
+        # human fixes it.
+        existing = {row["name"] for row in conn.execute("PRAGMA table_info(submission)")}
+        if "student_id_corrected" not in existing:
+            conn.execute("ALTER TABLE submission ADD COLUMN student_id_corrected TEXT")
+        if "student_name_corrected" not in existing:
+            conn.execute("ALTER TABLE submission ADD COLUMN student_name_corrected TEXT")
     conn.execute("UPDATE schema_meta SET value = ? WHERE key = 'version'", (str(to_version),))
     conn.commit()

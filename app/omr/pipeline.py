@@ -162,6 +162,13 @@ def process_submission(
     text_field_results = []
     if template.text_fields:
         text_field_results = read_all_text_fields(warped_gray, template.text_fields, template.canvas_size)
+        if any(t.status == "ENGINE_UNAVAILABLE" for t in text_field_results):
+            diag.warnings.append(
+                "OCR_ENGINE_UNAVAILABLE: Tesseract is not installed or not on PATH on this "
+                "machine -- Name/Class/Date/etc. fields cannot be read until it's set up "
+                "(bubbles and Student ID are unaffected, since those don't use OCR). "
+                "See Settings for install instructions."
+            )
 
     needs_review = bool(diag.warnings)
     status = SubmissionStatus.NEEDS_REVIEW if needs_review else SubmissionStatus.COMPLETED

@@ -41,6 +41,26 @@
 <div class="section" style="margin-top:24px">
   <div class="card">
     <h3>{% if lang == 'fa' %}تشخیص متن (OCR){% else %}Text recognition (OCR){% endif %}</h3>
+    {% if not ocr_engine_available %}
+    <div class="toast-style-warning" style="border:1.5px solid #d9822b; border-radius:8px; padding:12px 14px; margin-bottom:14px; background:rgba(217,130,43,0.08)">
+      <p style="margin:0 0 6px; font-weight:700; color:#d9822b">
+        {% if lang == 'fa' %}⚠ موتور Tesseract OCR روی این سیستم پیدا نشد{% else %}⚠ Tesseract OCR engine not found on this machine{% endif %}
+      </p>
+      <p class="page-subtitle" style="margin:0">
+        {% if lang == 'fa' %}
+        فیلدهای متنی (Name/Class/Date/...) قابل خوندن نیستن تا وقتی Tesseract نصب بشه — اما تشخیص حباب‌ها و شماره دانش‌آموزی از این موضوع تأثیر نمی‌گیرن، چون OCR استفاده نمی‌کنن. Tesseract یه برنامه‌ی جداگونه‌ست که باید خودت نصبش کنی (با pytesseract نصب نمیشه):<br>
+        <b>ویندوز:</b> نصب‌کننده رو از <code>github.com/UB-Mannheim/tesseract/wiki</code> دانلود و نصب کن، و مطمئن شو مسیر نصب (مثلاً <code>C:\Program Files\Tesseract-OCR</code>) به PATH سیستم اضافه شده — بعد برنامه رو کامل ببند و دوباره باز کن.<br>
+        <b>مک:</b> <code>brew install tesseract</code><br>
+        <b>لینوکس:</b> <code>sudo apt-get install tesseract-ocr</code>
+        {% else %}
+        Text fields (Name/Class/Date/...) can't be read until Tesseract is installed — bubble and Student ID detection are unaffected, since those don't use OCR. Tesseract is a separate program you have to install yourself (pytesseract doesn't bundle it):<br>
+        <b>Windows:</b> download the installer from <code>github.com/UB-Mannheim/tesseract/wiki</code>, and make sure the install folder (e.g. <code>C:\Program Files\Tesseract-OCR</code>) is added to your system PATH — then fully close and reopen the app.<br>
+        <b>Mac:</b> <code>brew install tesseract</code><br>
+        <b>Linux:</b> <code>sudo apt-get install tesseract-ocr</code>
+        {% endif %}
+      </p>
+    </div>
+    {% endif %}
     <p class="page-subtitle" style="margin:0 0 8px">
       {% if lang == 'fa' %}زبان‌های فعال برای خواندن فیلدهای متنی (نام/کلاس/تاریخ): {{ ocr_langs|join('، ') }}{% else %}Active languages for reading text fields (Name/Class/Date): {{ ocr_langs|join(', ') }}{% endif %}
     </p>

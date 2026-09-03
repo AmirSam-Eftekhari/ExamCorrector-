@@ -3,10 +3,22 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">{{ sub.source_file }}</h1>
-    <div class="page-subtitle">
-      {% if lang == 'fa' %}شناسه: {{ sub.student_id_detected or '—' }} · اسم: {{ sub.student_name_detected or '—' }}{% else %}ID: {{ sub.student_id_detected or '—' }} · Name: {{ sub.student_name_detected or '—' }}{% endif %}
+    <div class="page-subtitle" id="identity-display">
+      {% if lang == 'fa' %}شناسه: {{ sub.student_id_effective or '—' }}{% else %}ID: {{ sub.student_id_effective or '—' }}{% endif %}
+      {% if sub.student_id_corrected %}<span class="warn-chip" style="font-size:0.75em">{% if lang == 'fa' %}اصلاح‌شده{% else %}corrected{% endif %}</span>{% endif %}
+      · {% if lang == 'fa' %}اسم: {{ sub.student_name_effective or '—' }}{% else %}Name: {{ sub.student_name_effective or '—' }}{% endif %}
+      {% if sub.student_name_corrected %}<span class="warn-chip" style="font-size:0.75em">{% if lang == 'fa' %}اصلاح‌شده{% else %}corrected{% endif %}</span>{% endif %}
       · <span class="badge {{ 'badge-green' if sub.status.value == 'COMPLETED' else ('badge-red' if sub.status.value == 'FAILED' else 'badge-amber') }}">{{ sub.status.value }}</span>
+      <button type="button" class="btn-icon" onclick="document.getElementById('identity-display').style.display='none'; document.getElementById('identity-edit-form').style.display='flex';" title="{% if lang == 'fa' %}ویرایش شناسه/اسم{% else %}Edit ID/Name{% endif %}">
+        {{ icon('edit', 14) }}
+      </button>
     </div>
+    <form id="identity-edit-form" method="post" action="{{ url_for('submission_edit_identity', exam_id=exam.id, submission_id=sub.id) }}"
+          style="display:none; gap:8px; align-items:center; margin-top:4px">
+      <input type="text" name="student_id" value="{{ sub.student_id_effective or '' }}" placeholder="{% if lang == 'fa' %}شناسه دانش‌آموز{% else %}Student ID{% endif %}" style="width:140px">
+      <input type="text" name="student_name" value="{{ sub.student_name_effective or '' }}" placeholder="{% if lang == 'fa' %}نام دانش‌آموز{% else %}Student name{% endif %}" style="width:200px">
+      <button type="submit" class="btn btn-primary" style="padding:4px 12px">{% if lang == 'fa' %}ذخیره{% else %}Save{% endif %}</button>
+    </form>
   </div>
   <div style="display:flex; gap:8px">
     {% if flagged %}
@@ -19,6 +31,7 @@
     </a>
   </div>
 </div>
+
 
 {% if sub.status.value == 'FAILED' %}
 <div class="card"><h3>{% if lang == 'fa' %}پردازش ناموفق{% else %}Processing failed{% endif %}</h3><p>{{ sub.failure_reason }}</p></div>

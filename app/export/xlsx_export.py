@@ -72,8 +72,8 @@ def export_exam_workbook(conn: sqlite3.Connection, exam: Exam) -> bytes:
     submissions = repo.list_submissions(conn, exam.id)
     for r, s in enumerate(submissions, start=2):
         ws2.cell(row=r, column=1, value=s.id)
-        ws2.cell(row=r, column=2, value=s.student_id_detected or "")
-        ws2.cell(row=r, column=3, value=s.student_name_detected or "")
+        ws2.cell(row=r, column=2, value=s.student_id_effective or "")
+        ws2.cell(row=r, column=3, value=s.student_name_effective or "")
         ws2.cell(row=r, column=4, value=s.source_file)
         ws2.cell(row=r, column=5, value=s.status.value)
         ws2.cell(row=r, column=6, value=s.quality_score)

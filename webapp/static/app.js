@@ -148,3 +148,4 @@ document.querySelectorAll("form[data-loading-text]").forEach((form) => {
     btn.innerHTML = `<span class="spinner"></span> ${form.dataset.loadingText}`;
   });
 });
+

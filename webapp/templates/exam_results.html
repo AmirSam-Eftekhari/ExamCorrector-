@@ -32,8 +32,8 @@
     {% for s in submissions %}
       <tr>
         <td>{{ s.source_file }}</td>
-        <td>{{ s.student_id_detected or '—' }}</td>
-        <td>{{ s.student_name_detected or '—' }}</td>
+        <td>{{ s.student_id_effective or "—" }}</td>
+        <td>{{ s.student_name_effective or "—" }}</td>
         <td>{{ (s.percentage ~ '%') if s.percentage is not none else '—' }}</td>
         <td>{{ s.quality_score|round(0)|int if s.quality_score else '—' }}{{ '%' if s.quality_score }}</td>
         <td><span class="badge {{ 'badge-green' if s.status.value == 'COMPLETED' else ('badge-red' if s.status.value == 'FAILED' else 'badge-amber') }}">{{ s.status.value }}</span></td>

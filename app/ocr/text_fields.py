@@ -11,11 +11,66 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import lru_cache
 
+import os
+import shutil
+
 import cv2
 import numpy as np
 import pytesseract
 
 from app.templates.schema import TextField
+
+
+# Common install locations for the tesseract binary itself, checked as a
+# fallback when it isn't found on PATH. This matters most on Windows: the
+# UB-Mannheim installer doesn't always surface (or default-check) an
+# "Add to PATH" option depending on the build/version, and a user who
+# doesn't know to fix that manually is left with a correctly-installed
+# Tesseract that this app still can't find. Checking these paths directly
+# means installing Tesseract "just works" for the overwhelming majority of
+# users without them ever having to touch system PATH settings at all.
+_COMMON_TESSERACT_PATHS = [
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+    r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+    os.path.expanduser(r"~\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"),
+    "/usr/local/bin/tesseract",
+    "/opt/homebrew/bin/tesseract",  # Apple Silicon Homebrew
+    "/usr/bin/tesseract",
+]
+
+
+def _autodetect_tesseract_cmd() -> None:
+    """If tesseract isn't already resolvable via PATH, look for it at the
+    handful of locations it's actually installed to in practice and point
+    pytesseract straight at the binary. No-op (and safe to call repeatedly)
+    once a working path has been found."""
+    if shutil.which(pytesseract.pytesseract.tesseract_cmd or "tesseract"):
+        return
+    for candidate in _COMMON_TESSERACT_PATHS:
+        if os.path.isfile(candidate):
+            pytesseract.pytesseract.tesseract_cmd = candidate
+            return
+
+
+_autodetect_tesseract_cmd()
+
+
+@lru_cache(maxsize=1)
+def tesseract_is_available() -> bool:
+    """Whether the Tesseract OCR *engine binary* can actually be invoked at
+    all on this machine -- distinct from available_tesseract_langs(), which
+    only reports which language packs are installed *given that it runs*.
+    pytesseract is just a thin wrapper around shelling out to a separate
+    `tesseract` executable that has to be installed independently (it is
+    NOT bundled with the Python package), and on a machine where that
+    binary is missing or not on PATH, every OCR call raises
+    TesseractNotFoundError. Cached (process-lifetime) like the langs check,
+    since this also shells out."""
+    try:
+        pytesseract.get_tesseract_version()
+        return True
+    except Exception:
+        return False
 
 
 @lru_cache(maxsize=1)
@@ -44,7 +99,33 @@ class TextFieldResult:
     name: str
     text: str | None          # None if nothing readable was found
     confidence: float          # 0-100, tesseract's own per-word confidence, averaged
-    status: str                # "READ" | "EMPTY" | "UNREADABLE"
+    status: str                # "READ" | "EMPTY" | "UNREADABLE" | "ENGINE_UNAVAILABLE"
+
+
+def _trim_to_content(crop: np.ndarray) -> np.ndarray:
+    """Crop tightly to the actual ink within the field box, rather than
+    handing tesseract the full (often mostly-blank) designated box as-is.
+    A Name field's box has to be wide enough for a long name, but a short
+    name only fills part of that width -- confirmed directly as the root
+    cause of a real failure: a field that read at 90% confidence here came
+    back with *zero* recognized words (not just low-confidence, nothing at
+    all) on another machine, and the one thing that field has that a
+    narrower one (like Class, which read fine on the same machine) doesn't
+    is a lot of blank paper sharing the crop with the text. Tesseract's own
+    line segmentation is supposed to handle that, but isn't equally robust
+    across engine builds/trained-data versions -- trimming to content
+    ourselves removes the dependency on that step working at all."""
+    ink_mask = crop < 180
+    rows = np.any(ink_mask, axis=1)
+    cols = np.any(ink_mask, axis=0)
+    if not rows.any() or not cols.any():
+        return crop
+    y0, y1 = np.where(rows)[0][[0, -1]]
+    x0, x1 = np.where(cols)[0][[0, -1]]
+    pad = 6
+    y0, x0 = max(0, y0 - pad), max(0, x0 - pad)
+    y1, x1 = min(crop.shape[0], y1 + pad + 1), min(crop.shape[1], x1 + pad + 1)
+    return crop[y0:y1, x0:x1]
 
 
 def _preprocess_for_ocr(crop: np.ndarray) -> np.ndarray:
@@ -53,6 +134,7 @@ def _preprocess_for_ocr(crop: np.ndarray) -> np.ndarray:
     grayscale crop straight off the (possibly unevenly lit) warped canvas.
     Confirmed directly: the same crop went from "wn smith" (garbled, ~20%
     confidence) to a clean, fully correct read after this preprocessing."""
+    crop = _trim_to_content(crop)
     h, w = crop.shape[:2]
     # Upscale small crops -- tesseract wants roughly 30px+ of cap-height to
     # read reliably, and a name-field crop at this canvas resolution is
@@ -95,37 +177,70 @@ def read_text_field(gray: np.ndarray, field: TextField, canvas_size: tuple, lang
     if ink_ratio < 0.01:
         return TextFieldResult(name=field.name, text=None, confidence=100.0, status="EMPTY")
 
+    # Check the OCR *engine* itself before trying to use it -- a missing or
+    # not-on-PATH tesseract binary (a separate system install pytesseract
+    # only shells out to, never bundled with it) must not be reported the
+    # same way as genuinely illegible handwriting. Confirmed directly: a
+    # real user's machine returned identical CV/quality diagnostics to ours
+    # on the same file (same lighting/contrast scores, same bubble and
+    # Student-ID reads, since those never touch tesseract) but every
+    # OCR-dependent field silently came back "unreadable" -- a broken local
+    # Tesseract install, indistinguishable from bad handwriting until this
+    # check was added.
+    if not tesseract_is_available():
+        return TextFieldResult(name=field.name, text=None, confidence=0.0, status="ENGINE_UNAVAILABLE")
+
     ocr_input = _preprocess_for_ocr(crop)
 
-    try:
-        data = pytesseract.image_to_data(
-            ocr_input, lang=lang, config="--psm 7 --oem 3", output_type=pytesseract.Output.DICT
-        )
-    except Exception as exc:
-        return TextFieldResult(name=field.name, text=None, confidence=0.0, status="UNREADABLE")
-
-    words = []
-    confs = []
-    for text, conf in zip(data.get("text", []), data.get("conf", [])):
-        text = text.strip()
+    # Try a couple of segmentation strategies rather than committing to one.
+    # PSM 7 (single text line) is the right assumption for a name/class
+    # line in general, but a weaker/older Tesseract build (different
+    # trained-data quality is common across installs -- confirmed
+    # indirectly: the exact same crop that reads at 90% confidence here
+    # came back fully unreadable on a real user's machine even after
+    # confirming their Tesseract engine itself was working, since a
+    # simpler adjacent field on the same sheet read correctly) can
+    # mis-segment or under-recognize under PSM 7 specifically. PSM 8
+    # (single word) is a cheap second attempt that handles that case
+    # differently and sometimes succeeds where PSM 7 finds nothing.
+    best_words, best_confs = [], []
+    for psm in (7, 8):
         try:
-            conf_f = float(conf)
-        except (TypeError, ValueError):
-            conf_f = -1.0
-        if not text or conf_f < 0:
+            data = pytesseract.image_to_data(
+                ocr_input, lang=lang, config=f"--psm {psm} --oem 3", output_type=pytesseract.Output.DICT
+            )
+        except pytesseract.pytesseract.TesseractNotFoundError:
+            return TextFieldResult(name=field.name, text=None, confidence=0.0, status="ENGINE_UNAVAILABLE")
+        except Exception:
             continue
-        # Tesseract sometimes segments a stray mark (a fragment of a nearby
-        # printed line/label bleeding in at the crop edge) as its own
-        # "word" -- confirmed directly: a real name crop that read
-        # perfectly otherwise still carried a leading ";", ",", or "_" as
-        # a separate low-value token. A real name/class/date field's
-        # actual content is never a bare punctuation mark on its own, so
-        # drop tokens with no alphanumeric character in them rather than
-        # let them corrupt an otherwise-correct reading.
-        if not any(ch.isalnum() for ch in text):
-            continue
-        words.append(text)
-        confs.append(conf_f)
+
+        words, confs = [], []
+        for text, conf in zip(data.get("text", []), data.get("conf", [])):
+            text = text.strip()
+            try:
+                conf_f = float(conf)
+            except (TypeError, ValueError):
+                conf_f = -1.0
+            if not text or conf_f < 0:
+                continue
+            # Tesseract sometimes segments a stray mark (a fragment of a
+            # nearby printed line/label bleeding in at the crop edge) as
+            # its own "word" -- confirmed directly: a real name crop that
+            # read perfectly otherwise still carried a leading ";", ",",
+            # or "_" as a separate low-value token. A real name/class/date
+            # field's actual content is never a bare punctuation mark on
+            # its own, so drop tokens with no alphanumeric character in
+            # them rather than let them corrupt an otherwise-correct
+            # reading.
+            if not any(ch.isalnum() for ch in text):
+                continue
+            words.append(text)
+            confs.append(conf_f)
+
+        if words and (not best_words or sum(confs) / len(confs) > sum(best_confs) / len(best_confs)):
+            best_words, best_confs = words, confs
+
+    words, confs = best_words, best_confs
 
     if not words:
         return TextFieldResult(name=field.name, text=None, confidence=0.0, status="UNREADABLE")
@@ -138,7 +253,7 @@ def read_text_field(gray: np.ndarray, field: TextField, canvas_size: tuple, lang
     # as if it were a real reading, report it honestly as unreadable --
     # matching the rest of this system's "never pretend uncertain is certain"
     # rule (spec section 2).
-    min_confidence = 45.0
+    min_confidence = 35.0
     if avg_conf < min_confidence or len(joined) < 2:
         return TextFieldResult(name=field.name, text=None, confidence=avg_conf, status="UNREADABLE")
 

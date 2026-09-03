@@ -75,7 +75,7 @@
       {% for s in submissions[-8:][::-1] %}
         <tr>
           <td>{{ s.source_file }}</td>
-          <td>{{ s.student_id_detected or '—' }}</td>
+          <td>{{ s.student_id_effective or "—" }}</td>
           <td>{{ s.percentage ~ '%' if s.percentage is not none else '—' }}</td>
           <td><span class="badge {{ 'badge-green' if s.status.value == 'COMPLETED' else ('badge-red' if s.status.value == 'FAILED' else 'badge-amber') }}">{{ s.status.value }}</span></td>
           <td><a href="{{ url_for('submission_detail', exam_id=exam.id, submission_id=s.id) }}" class="btn btn-secondary">{% if lang == 'fa' %}مشاهده{% else %}View{% endif %}</a></td>

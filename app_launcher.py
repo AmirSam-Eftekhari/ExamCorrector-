@@ -2,11 +2,9 @@
 """
 ExamCorrector -- standalone launcher.
 
-This is the entry point meant to be compiled into a single-file executable
-(see build_exe.bat / build_exe.sh). It's a plain interactive console menu
-with no GUI dependency, so it can be built and run today -- unlike the
-PySide6 desktop shell in app/ui/, which needs PySide6 installed to even
-import (see README "Known limitations").
+This is a lightweight interactive console entry point. The primary
+application interface is the Flask web UI launched by main.py; this launcher
+is useful when a full browser UI is unnecessary.
 
 Double-clicking the compiled .exe opens a console window and runs main()
 below; nothing here requires typing commands or flags.
@@ -160,8 +158,7 @@ def main():
     print("  ExamCorrector -- offline OMR & exam assessment")
     print("=" * 60)
     print("This console tool covers template calibration and single-sheet")
-    print("processing/grading. (The full desktop UI is a separate, still")
-    print("in-progress phase -- see README.)")
+    print("processing/grading. For the full interface, run: python main.py")
     ensure_user_data_seeded()
 
     while True:

@@ -76,7 +76,7 @@ def generate_exam_report_pdf(conn: sqlite3.Connection, exam: Exam) -> bytes:
         rows = [["Student ID", "Name", "File", "Score", "Percentage", "Status"]]
         for s in submissions:
             rows.append([
-                s.student_id_detected or "—", s.student_name_detected or "—", s.source_file,
+                s.student_id_effective or "—", s.student_name_effective or "—", s.source_file,
                 f"{s.score:.2f}" if s.score is not None else "—",
                 f"{s.percentage:.1f}%" if s.percentage is not None else "—",
                 s.status.value,

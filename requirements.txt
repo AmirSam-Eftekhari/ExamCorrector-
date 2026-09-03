@@ -7,7 +7,7 @@ pytesseract>=0.3.10          # requires the `tesseract` binary on PATH (apt inst
 scipy>=1.11                  # available for future algorithm work; not a hard dependency of any current module
 scikit-image>=0.22           # ditto
 
-# Web UI (webapp/server.py, launched by main.py) -- tested and working:
+# Web UI (webapp/server.py, launched by main.py):
 Flask>=3.0
 
 # Desktop UI (Phase 1 shell in app/ui/ -- an alternative to the web UI,
@@ -15,7 +15,7 @@ Flask>=3.0
 # built in, which has no network access):
 PySide6>=6.6
 
-# PDF import support (spec section 3) -- not yet wired into any pipeline code:
+# PDF import support for batch processing, quick processing, and template calibration:
 PyMuPDF>=1.23
 
 # Spreadsheet export (spec section 37) -- tested and working (webapp export routes + XLSX unit tests):
@@ -32,7 +32,7 @@ pypdf>=4.0                   # used only by the test suite, to verify generated 
 # on Debian/Ubuntu: sudo apt-get install poppler-utils
 pdf2image>=1.17
 
-# Packaging (spec section 65) -- not yet configured:
+# Packaging:
 pyinstaller>=6.3
 
 # Dev/testing convenience (the test suite itself uses only the stdlib

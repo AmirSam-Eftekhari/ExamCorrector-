@@ -297,6 +297,8 @@ table.results tbody tr:hover { background: var(--gray-soft); }
 .template-card .name { font-weight: 700; font-size: 15px; }
 .template-card .meta { color: var(--subtext); font-size: 12.5px; }
 .warn-chip { color: var(--amber); font-size: 12px; }
+.btn-icon { background: none; border: none; cursor: pointer; color: var(--subtext); padding: 2px 4px; vertical-align: middle; border-radius: 4px; }
+.btn-icon:hover { color: var(--text); background: var(--hover, rgba(128,128,128,0.15)); }
 
 /* ---------- Answer key editor ---------- */
 .key-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 24px; }

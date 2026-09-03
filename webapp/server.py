@@ -19,7 +19,6 @@ against a real Exam is persisted to SQLite via app/database as usual.
 from __future__ import annotations
 
 import csv
-import os
 import io
 import json
 import sqlite3
@@ -54,7 +53,7 @@ from app.export.pdf_export import generate_exam_report_pdf
 from app.grading.engine import grade_submission
 from app.localization.strings import tr, is_rtl
 from app.omr.pipeline import process_submission
-from app.ocr.text_fields import available_tesseract_langs
+from app.ocr.text_fields import available_tesseract_langs, tesseract_is_available
 from app.templates.calibrate import calibrate_template_from_image
 from app.templates.schema import Template
 from webapp.icons import icon
@@ -68,10 +67,7 @@ app = Flask(
     template_folder=str(BASE_DIR / "webapp" / "templates"),
     static_folder=str(BASE_DIR / "webapp" / "static"),
 )
-app.secret_key = os.environ.get(
-    "EXAMCORRECTOR_SECRET_KEY",
-    uuid.uuid4().hex,
-)
+app.secret_key = "examcorrector-local-dev"  # local single-user tool; not internet-facing
 
 SESSIONS: dict[str, dict] = {}
 UPLOADS_DIR = DATA_DIR / "uploads"
@@ -473,6 +469,20 @@ def submission_detail(exam_id: int, submission_id: int):
                             grade=grade, flagged=flagged, annotated_b64=annotated_b64)
 
 
+@app.route("/exams/<int:exam_id>/results/<int:submission_id>/edit-identity", methods=["POST"])
+def submission_edit_identity(exam_id: int, submission_id: int):
+    conn = get_db()
+    sub = repo.get_submission(conn, submission_id)
+    if not sub or sub.exam_id != exam_id:
+        return redirect(url_for("exams_list"))
+
+    new_id = (request.form.get("student_id") or "").strip()
+    new_name = (request.form.get("student_name") or "").strip()
+    repo.apply_identity_correction(conn, submission_id, new_id, new_name)
+    flash_msg("success", _t("شناسه/نام دانش‌آموز به‌روزرسانی شد.", "Student ID/name updated."))
+    return redirect(url_for("submission_detail", exam_id=exam_id, submission_id=submission_id))
+
+
 @app.route("/exams/<int:exam_id>/results/<int:submission_id>/edit-answers")
 def submission_edit_all(exam_id: int, submission_id: int):
     conn = get_db()
@@ -794,7 +804,8 @@ def settings_page():
         return redirect(url_for("settings_page"))
 
     return render_template("settings.html", current_theme=THEME, current_lang=LANG,
-                            ocr_langs=sorted(available_tesseract_langs() - {"osd"}))
+                            ocr_langs=sorted(available_tesseract_langs() - {"osd"}),
+                            ocr_engine_available=tesseract_is_available())
 
 
 def _open_browser():

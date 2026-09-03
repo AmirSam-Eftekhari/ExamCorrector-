@@ -336,29 +336,29 @@ def _calibrate_text_fields(gray, cw, ch, search_bottom_px: float) -> list[TextFi
         except Exception:
             raw_label = ""
         label = _clean_label(raw_label) if raw_label else f"field_{len(fields) + 1}"
-        # The OCR crop needs real room on every side, not just found from the
-        # detected line's own bounding box verbatim:
-        # - vertical: a 34px-tall band (the original 30px-above/4px-below
-        #   margins) clips through the middle of handwritten or even typed
-        #   characters, since ascenders/full letter height commonly need
-        #   40-60px+ to OCR reliably at this canvas resolution.
-        # - horizontal: using the line's exact x-span with no margin clips
-        #   the first character whenever real writing starts even slightly
-        #   before the printed line (very common). Empirically tuned via a
-        #   direct sweep against a real "John Smith" OCR test: 0px margin
-        #   read "wn smith", 30px still clipped to "ohn Smith", 60px read
-        #   perfectly, and anything past ~75px started pulling in the
-        #   printed field label itself ("Name:") and corrupting the read --
-        #   3% of canvas width (60px at this canvas size) is the sweet spot.
-        # - the bottom edge is pulled back above the line's own stroke
-        #   (rather than a fixed +8px past its top) so the ruled line itself
-        #   isn't included in what gets OCR'd, which was visibly confusing
-        #   tesseract's line segmentation.
-        x_margin_left = int(cw * 0.03)
+
+        # The value-crop's left margin needs to clear the label's own text
+        # without eating into it -- a fixed pixel margin tuned on one sheet
+        # design doesn't transfer to another (confirmed directly: 60px was
+        # a clean fit for one sheet's "Name:" label, but produced "me:
+        # Amirsam Eftekharinia" -- a label fragment bleeding in -- on a
+        # second sheet with different label font metrics). Instead, measure
+        # where the label's own recognized text actually ends (its
+        # rightmost detected word box within label_crop) and start the
+        # value crop just past that, with a small fixed buffer. Falls back
+        # to a fixed margin only if the label OCR found nothing to measure.
+        # The OCR value starts on the right side of the printed label.
+        # Starting left of the underline can leak fragments such as "Name:"
+        # into the OCR crop and make Tesseract prefer the wrong segmentation.
+        value_start_x = min(cw, x + max(8, int(cw * 0.004)))
+
+        # Text is printed above the underline. Keep enough vertical room for
+        # typical typed/handwritten characters without including the section
+        # heading farther above or the underline itself.
         x_margin_right = int(cw * 0.015)
         value_box = (
-            max(0, x - x_margin_left) / cw,
-            max(0, y - 55) / ch,
+            value_start_x / cw,
+            max(0, y - 35) / ch,
             min(cw, x + w + x_margin_right) / cw,
             max(0, y - 2) / ch,
         )
