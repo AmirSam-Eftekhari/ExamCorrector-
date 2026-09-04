@@ -1,18 +1,31 @@
+# Python
 __pycache__/
 *.py[cod]
+*.pyo
 .venv/
 venv/
-.buildenv/
+.env
+.env.*
 *.egg-info/
-build/
-dist/
+
+# Test / tooling
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+
+# Runtime / local application data
 data/
 *.sqlite3
 *.log
-.DS_Store
-Thumbs.db
+
+# IDE / OS
 .idea/
 .vscode/
+.DS_Store
+Thumbs.db

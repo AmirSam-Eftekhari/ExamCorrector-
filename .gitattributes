@@ -1,0 +1,6 @@
+# Keep GitHub language statistics and diffs clean
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
